@@ -91,7 +91,7 @@ Function Initialize-RunnerEnvironment {
             
             ## Github folder structure for this template should have the script in a src folder
             # If the src folder exists, set the location to the src folder
-            If (Test-Path -Path "$Workspace\src") {
+            If (Test-Path -Path "$Workspace\src" -ErrorAction SilentlyContinue) {
                 Set-Location -Path "$Workspace\src"
             }
             # Otherwise set it to the root of the workspace
@@ -157,7 +157,7 @@ Function Initialize-RunnerEnvironment {
             ## The config path is generated dynamically based on the script name.  Requires src folder structure.
             
             # Check if the src folder exists in the workspace, create a config path based on the script name
-            If (Test-Path -Path $PSScriptRoot\src) {
+            If (Test-Path -Path $PSScriptRoot\src -ErrorAction SilentlyContinue) {
                 $Global:ConfigPath = Join-Path -Path "$Workspace\src" -ChildPath $ScriptName.Replace('.ps1', '.Config.psd1')
             }
             # If the src folder does not exist, create a config path based on the script name
@@ -165,7 +165,7 @@ Function Initialize-RunnerEnvironment {
                 $Global:ConfigPath = Join-Path -Path "$Workspace" -ChildPath $ScriptName.Replace('.ps1', '.Config.psd1')
             }
             ## If the config file exists, import it.
-            If (Test-Path -Path $ConfigPath) {
+            If (Test-Path -Path $ConfigPath -ErrorAction SilentlyContinue) {
                 $Global:Config = Import-PowershellDataFile -Path $ConfigPath -ErrorAction Stop
                 Write-Debug -Message "Config Loaded."
             }
@@ -203,7 +203,7 @@ Function Initialize-RunnerEnvironment {
             # Check if functions path exists in global scope
             If (-not [string]::IsNullOrWhiteSpace($FunctionsPath)) {
                 # Check if the functions path exists and has PS1 files
-                If (Test-Path -Path $FunctionsPath -Filter *.ps*) {
+                If (Test-Path -Path $FunctionsPath -Filter *.ps* -ErrorAction SilentlyContinue) {
                     $FunctionFiles = Get-ChildItem -Path $FunctionsPath -Filter *.ps* -Recurse -ErrorAction 'Stop' | Where-Object { $_.name -NotLike '*.Tests.ps1' }
                     # Check all imported functions in the function: powershell drive
                     $ImportedFunctions = Get-Item -Path function:
@@ -244,7 +244,7 @@ Function Initialize-RunnerEnvironment {
             # Check if the user is an administrator
             If ([Security.Principal.WindowsIdentity]::GetCurrent().Groups -contains 'S-1-5-32-544') {
                 Write-Debug -Message "User is an administrator, checking dependencies."
-                If (Test-Path -Path "$Env:ProgramData\InitDate_$($ScriptName).xml") {
+                If (Test-Path -Path "$Env:ProgramData\InitDate_$($ScriptName).xml" -ErrorAction SilentlyContinue) {
                     #Get the date of the last module updates, used to check if the dependencies are up to date.
                     $InitDate = Import-CliXML -Path "$Env:ProgramData\InitDate_$($ScriptName).xml"
                     #Get the current date to compare to the last update date
